@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Preço de Venda</title>
+  <title>Calculadora de Meta de Venda</title>
   <link rel="manifest" href="manifest.json">
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
@@ -16,40 +16,45 @@
 </head>
 <body>
 
-<h1>Calculadora de Preço de Venda</h1>
+<h1>Calculadora de Meta de Venda</h1>
 
 <label>Custo do Produto (R$):</label>
 <input type="number" id="custoProduto" placeholder="Ex: 12">
 
-<label>Custo da Embalagem (R$):</label>
-<input type="number" id="custoEmbalagem" placeholder="Ex: 1">
+<label>Preço de Venda (R$):</label>
+<input type="number" id="precoVenda" placeholder="Ex: 36">
 
-<label>Quantidade Vendida no Mês (Estimativa):</label>
-<input type="number" id="quantidadeVendida" placeholder="Ex: 500">
+<label>Quantidade Comprada:</label>
+<input type="number" id="quantidadeComprada" placeholder="Ex: 10">
 
-<label>Margem de Lucro Desejada (%):</label>
-<input type="number" id="margemLucro" placeholder="Ex: 30">
-
-<button onclick="calcular()">Calcular Preço de Venda</button>
+<button onclick="calcular()">Calcular</button>
 
 <div id="resultado" class="resultado" style="display:none;"></div>
 
 <script>
   const custoFixoMensal = 6768; // Seu custo fixo atual
+
   function calcular() {
     const custoProduto = parseFloat(document.getElementById('custoProduto').value) || 0;
-    const custoEmbalagem = parseFloat(document.getElementById('custoEmbalagem').value) || 0;
-    const quantidadeVendida = parseInt(document.getElementById('quantidadeVendida').value) || 1;
-    const margemLucro = parseFloat(document.getElementById('margemLucro').value) / 100 || 0.3;
+    const precoVenda = parseFloat(document.getElementById('precoVenda').value) || 0;
+    const quantidadeComprada = parseInt(document.getElementById('quantidadeComprada').value) || 1;
 
-    const custoFixoPorProduto = custoFixoMensal / quantidadeVendida;
-    const custoTotalProduto = custoProduto + custoEmbalagem + custoFixoPorProduto;
-    const precoVenda = custoTotalProduto / (1 - margemLucro);
+    const investimentoTotal = custoProduto * quantidadeComprada;
+    const receitaTotal = precoVenda * quantidadeComprada;
+    const lucroBruto = receitaTotal - investimentoTotal;
+    const lucroPorProduto = precoVenda - custoProduto;
+
+    let produtosNecessarios = "—";
+    if (lucroPorProduto > 0) {
+      produtosNecessarios = Math.ceil(custoFixoMensal / lucroPorProduto);
+    }
 
     document.getElementById('resultado').style.display = 'block';
     document.getElementById('resultado').innerHTML = `
-      <strong>Preço mínimo sugerido:</strong> R$ ${precoVenda.toFixed(2)}<br>
-      <small>(considerando custo fixo e margem de lucro)</small>
+      <strong>Investimento total:</strong> R$ ${investimentoTotal.toFixed(2)}<br>
+      <strong>Receita total estimada:</strong> R$ ${receitaTotal.toFixed(2)}<br>
+      <strong>Lucro bruto:</strong> R$ ${lucroBruto.toFixed(2)}<br>
+      <strong>Produtos que você precisa vender no mês para pagar o custo fixo:</strong> ${produtosNecessarios} unidades
     `;
   }
 
