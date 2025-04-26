@@ -1,6 +1,6 @@
 {
-  "name": "Calculadora de Preço de Venda",
-  "short_name": "Preço de Venda",
+  "name": "Calculadora de Meta de Venda",
+  "short_name": "Meta de Venda",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
