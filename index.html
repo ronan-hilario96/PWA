@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Preço de Venda</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
+    h1 { font-size: 24px; }
+    input, button { width: 100%; padding: 10px; margin: 10px 0; }
+    button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #45a049; }
+    .resultado { background: #fff; padding: 15px; margin-top: 20px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+<h1>Calculadora de Preço de Venda</h1>
+
+<label>Custo do Produto (R$):</label>
+<input type="number" id="custoProduto" placeholder="Ex: 12">
+
+<label>Custo da Embalagem (R$):</label>
+<input type="number" id="custoEmbalagem" placeholder="Ex: 1">
+
+<label>Quantidade Vendida no Mês (Estimativa):</label>
+<input type="number" id="quantidadeVendida" placeholder="Ex: 500">
+
+<label>Margem de Lucro Desejada (%):</label>
+<input type="number" id="margemLucro" placeholder="Ex: 30">
+
+<button onclick="calcular()">Calcular Preço de Venda</button>
+
+<div id="resultado" class="resultado" style="display:none;"></div>
+
+<script>
+  const custoFixoMensal = 6768; // Seu custo fixo atual
+  function calcular() {
+    const custoProduto = parseFloat(document.getElementById('custoProduto').value) || 0;
+    const custoEmbalagem = parseFloat(document.getElementById('custoEmbalagem').value) || 0;
+    const quantidadeVendida = parseInt(document.getElementById('quantidadeVendida').value) || 1;
+    const margemLucro = parseFloat(document.getElementById('margemLucro').value) / 100 || 0.3;
+
+    const custoFixoPorProduto = custoFixoMensal / quantidadeVendida;
+    const custoTotalProduto = custoProduto + custoEmbalagem + custoFixoPorProduto;
+    const precoVenda = custoTotalProduto / (1 - margemLucro);
+
+    document.getElementById('resultado').style.display = 'block';
+    document.getElementById('resultado').innerHTML = `
+      <strong>Preço mínimo sugerido:</strong> R$ ${precoVenda.toFixed(2)}<br>
+      <small>(considerando custo fixo e margem de lucro)</small>
+    `;
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+  }
+</script>
+
+</body>
+</html>
