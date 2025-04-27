@@ -1,3 +1,129 @@
+// --- Funções da Calculadora ---
+
+const productCostInput = document.getElementById("product-cost");
+const markupInput = document.getElementById("markup");
+const calculateBtn = document.getElementById("calculate-btn");
+
+const suggestedPriceEl = document.getElementById("suggested-price");
+const profitPerProductEl = document.getElementById("profit-per-product");
+const realProfitMarginEl = document.getElementById("real-profit-margin");
+const productsToCoverCostEl = document.getElementById("products-to-cover-cost");
+
+const profitEstimatorTableBody = document.querySelector("#profit-estimator tbody");
+const salesEstimatorTableBody = document.querySelector("#sales-estimator tbody");
+
+const FIXED_MONTHLY_COST = 6768.00;
+
+// Função para formatar valores em Reais (BRL)
+function formatCurrency(value) {
+    if (isNaN(value) || value === null) return "R$ 0,00";
+    return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+// Função para formatar percentuais
+function formatPercentage(value) {
+    if (isNaN(value) || value === null) return "0,0%";
+    return (value * 100).toFixed(1).replace(".", ",") + "%";
+}
+
+// Função para obter o percentual total de custos fixos (agora usa currentFixedCosts)
+function getTotalFixedCostPercentage() {
+    if (!currentFixedCosts || currentFixedCosts.length === 0) {
+        // Se não houver custos carregados, tenta carregar ou usa padrão (redundante se loadCosts já rodou)
+        // loadCosts(); // Evitar chamar loadCosts aqui para não criar loop, assume que já foi chamado
+        // Se ainda assim estiver vazio, retorna 0 ou um valor padrão?
+        // Por segurança, vamos usar os padrões se currentFixedCosts estiver vazio
+        const defaultTotal = defaultFixedCosts.reduce((sum, cost) => sum + (parseFloat(cost.percentage) || 0), 0);
+        return defaultTotal / 100;
+    }
+    const totalPercentage = currentFixedCosts.reduce((sum, cost) => sum + (parseFloat(cost.percentage) || 0), 0);
+    return totalPercentage / 100; // Retorna como decimal (ex: 0.65 para 65%)
+}
+
+// Função principal de cálculo
+function calculatePricing() {
+    // Garante que os elementos existem antes de tentar acessá-los
+    if (!productCostInput || !markupInput || !suggestedPriceEl || !profitPerProductEl || !realProfitMarginEl || !productsToCoverCostEl || !profitEstimatorTableBody || !salesEstimatorTableBody) {
+        console.error("Elementos da calculadora não encontrados no DOM.");
+        return;
+    }
+
+    const cost = parseFloat(productCostInput.value);
+    const markup = parseFloat(markupInput.value);
+
+    if (isNaN(cost) || cost <= 0 || isNaN(markup) || markup < 1) {
+        // Não mostra alerta, apenas reseta os campos para não ser intrusivo
+        console.warn("Inputs inválidos para cálculo.");
+        suggestedPriceEl.textContent = formatCurrency(0);
+        profitPerProductEl.textContent = formatCurrency(0);
+        realProfitMarginEl.textContent = formatPercentage(0);
+        productsToCoverCostEl.textContent = "0";
+        profitEstimatorTableBody.innerHTML = "";
+        salesEstimatorTableBody.innerHTML = "";
+        return;
+    }
+
+    const totalFixedCostPercentage = getTotalFixedCostPercentage();
+
+    // 1. Preço Sugerido de Venda
+    const suggestedPrice = cost * markup;
+    suggestedPriceEl.textContent = formatCurrency(suggestedPrice);
+
+    // 2. Lucro por Produto (considerando custos fixos percentuais sobre o preço)
+    const fixedCostAmount = suggestedPrice * totalFixedCostPercentage;
+    const profitPerProduct = suggestedPrice - cost - fixedCostAmount;
+    profitPerProductEl.textContent = formatCurrency(profitPerProduct);
+
+    // 3. Margem de Lucro Real
+    const realProfitMargin = suggestedPrice > 0 ? profitPerProduct / suggestedPrice : 0;
+    realProfitMarginEl.textContent = formatPercentage(realProfitMargin);
+
+    // 4. Quantidade de Produtos para Cobrir Custo Fixo Mensal
+    const productsToCoverCost = profitPerProduct > 0 ? Math.ceil(FIXED_MONTHLY_COST / profitPerProduct) : Infinity;
+    productsToCoverCostEl.textContent = isFinite(productsToCoverCost) ? productsToCoverCost.toString() : "Incalculável";
+
+    // 5. Preencher Tabela Estimador de Lucro
+    populateProfitEstimator(cost, markup, totalFixedCostPercentage);
+
+    // 6. Preencher Tabela Estimador de Vendas
+    populateSalesEstimator(profitPerProduct);
+}
+
+// Função para popular a tabela Estimador de Lucro
+function populateProfitEstimator(cost, baseMarkup, totalFixedCostPercentage) {
+    profitEstimatorTableBody.innerHTML = ""; // Limpa a tabela
+    const markupsToEstimate = [baseMarkup - 0.5, baseMarkup - 0.25, baseMarkup, baseMarkup + 0.25, baseMarkup + 0.5].filter(m => m >= 1);
+
+    markupsToEstimate.forEach(markup => {
+        const price = cost * markup;
+        const fixedCost = price * totalFixedCostPercentage;
+        const profit = price - cost - fixedCost;
+        const margin = price > 0 ? profit / price : 0;
+
+        const row = `<tr>
+            <td>${markup.toFixed(2).replace(".", ",")}x</td>
+            <td>${formatCurrency(price)}</td>
+            <td>${formatCurrency(profit)}</td>
+            <td>${formatPercentage(margin)}</td>
+        </tr>`;
+        profitEstimatorTableBody.innerHTML += row;
+    });
+}
+
+// Função para popular a tabela Estimador de Vendas
+function populateSalesEstimator(profitPerProduct) {
+    salesEstimatorTableBody.innerHTML = ""; // Limpa a tabela
+    const salesQuantities = [5, 30, 100, 250, 500, 1000];
+
+    salesQuantities.forEach(quantity => {
+        const totalProfit = profitPerProduct * quantity;
+        const row = `<tr>
+            <td>${quantity}</td>
+            <td>${formatCurrency(totalProfit)}</td>
+        </tr>`;
+        salesEstimatorTableBody.innerHTML += row;
+    });
+}
 
 // --- Funções da Página de Custos Fixos ---
 
@@ -24,7 +150,7 @@ const defaultFixedCosts = [
 
 let currentFixedCosts = [];
 
-// Função para salvar custos no localStorage (será chamada pelas funções de manipulação)
+// Função para salvar custos no localStorage
 function saveCostsToLocalStorage() {
     try {
         localStorage.setItem("fixedCosts", JSON.stringify(currentFixedCosts));
@@ -40,29 +166,28 @@ function loadCosts() {
         const storedCosts = localStorage.getItem("fixedCosts");
         if (storedCosts) {
             const parsedCosts = JSON.parse(storedCosts);
-            // Validação básica para garantir que é um array de objetos com as propriedades esperadas
             if (Array.isArray(parsedCosts) && parsedCosts.every(cost => typeof cost === 'object' && cost !== null && 'name' in cost && 'percentage' in cost)) {
                 currentFixedCosts = parsedCosts;
             } else {
                  console.warn("Dados de custos fixos inválidos no localStorage. Usando padrão.");
-                 currentFixedCosts = [...defaultFixedCosts]; // Usa cópia dos padrões
-                 saveCostsToLocalStorage(); // Salva os padrões se os dados armazenados eram inválidos
+                 currentFixedCosts = [...defaultFixedCosts];
+                 saveCostsToLocalStorage();
             }
         } else {
-            currentFixedCosts = [...defaultFixedCosts]; // Usa cópia dos padrões se não houver nada salvo
-            saveCostsToLocalStorage(); // Salva os padrões na primeira vez
+            currentFixedCosts = [...defaultFixedCosts];
+            saveCostsToLocalStorage();
         }
     } catch (e) {
         console.error("Erro ao carregar custos fixos do localStorage:", e);
-        currentFixedCosts = [...defaultFixedCosts]; // Usa cópia dos padrões em caso de erro
+        currentFixedCosts = [...defaultFixedCosts];
     }
-    renderFixedCostsList();
+    // Não renderiza aqui, será chamado no DOMContentLoaded ou na troca de aba
 }
 
 // Função para renderizar a lista de custos fixos na UI
 function renderFixedCostsList() {
     if (!fixedCostsUl) return;
-    fixedCostsUl.innerHTML = ""; // Limpa a lista
+    fixedCostsUl.innerHTML = "";
     if (currentFixedCosts.length === 0) {
         fixedCostsUl.innerHTML = "<li>Nenhum custo fixo cadastrado.</li>";
         return;
@@ -82,7 +207,6 @@ function renderFixedCostsList() {
         fixedCostsUl.appendChild(li);
     });
 
-    // Adiciona listeners aos botões de editar e excluir
     document.querySelectorAll(".edit-cost-btn").forEach(button => {
         button.addEventListener("click", handleEditCost);
     });
@@ -90,13 +214,14 @@ function renderFixedCostsList() {
         button.addEventListener("click", handleDeleteCost);
     });
     
-    // Recalcula a precificação se a página da calculadora estiver visível
-    if (!calculatorPage.classList.contains('hidden')) {
+    // Recalcula a precificação APENAS se a página da calculadora estiver visível
+    const calculatorPage = document.getElementById('calculator-page');
+    if (calculatorPage && !calculatorPage.classList.contains('hidden')) {
         calculatePricing();
     }
 }
 
-// Função para escapar HTML e prevenir XSS simples
+// Função para escapar HTML
 function escapeHTML(str) {
     const div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
@@ -106,6 +231,7 @@ function escapeHTML(str) {
 // Função para lidar com Adicionar/Atualizar Custo
 function handleAddUpdateCost(event) {
     event.preventDefault();
+    if (!costNameInput || !costPercentageInput || !editCostIndexInput) return;
     const name = costNameInput.value.trim();
     const percentage = parseFloat(costPercentageInput.value);
     const index = parseInt(editCostIndexInput.value);
@@ -117,9 +243,9 @@ function handleAddUpdateCost(event) {
 
     const newCost = { name, percentage };
 
-    if (index === -1) { // Adicionar novo custo
+    if (index === -1) {
         currentFixedCosts.push(newCost);
-    } else { // Atualizar custo existente
+    } else {
         currentFixedCosts[index] = newCost;
     }
 
@@ -128,8 +254,9 @@ function handleAddUpdateCost(event) {
     resetCostForm();
 }
 
-// Função para lidar com Edição de Custo (preencher formulário)
+// Função para lidar com Edição de Custo
 function handleEditCost(event) {
+    if (!costNameInput || !costPercentageInput || !editCostIndexInput || !addUpdateCostBtn || !cancelEditBtn) return;
     const index = parseInt(event.target.dataset.index);
     const costToEdit = currentFixedCosts[index];
 
@@ -147,16 +274,17 @@ function handleDeleteCost(event) {
     const index = parseInt(event.target.dataset.index);
     const costToDelete = currentFixedCosts[index];
     
-    if (confirm(`Tem certeza que deseja excluir o custo "${costToDelete.name}"?`)) {
+    if (confirm(`Tem certeza que deseja excluir o custo "${escapeHTML(costToDelete.name)}"?`)) {
         currentFixedCosts.splice(index, 1);
         saveCostsToLocalStorage();
         renderFixedCostsList();
-        resetCostForm(); // Reseta o form caso o item deletado estivesse em edição
+        resetCostForm();
     }
 }
 
 // Função para resetar o formulário de custo
 function resetCostForm() {
+    if (!costNameInput || !costPercentageInput || !editCostIndexInput || !addUpdateCostBtn || !cancelEditBtn) return;
     costNameInput.value = "";
     costPercentageInput.value = "";
     editCostIndexInput.value = -1;
@@ -167,22 +295,11 @@ function resetCostForm() {
 // Função para lidar com o Reset para Custos Padrão
 function handleResetCosts() {
     if (confirm("Tem certeza que deseja resetar todos os custos para os valores padrão? Esta ação não pode ser desfeita.")) {
-        currentFixedCosts = [...defaultFixedCosts]; // Usa cópia dos padrões
+        currentFixedCosts = [...defaultFixedCosts];
         saveCostsToLocalStorage();
         renderFixedCostsList();
         resetCostForm();
     }
-}
-
-// Adiciona listeners aos botões da página de custos
-if (addUpdateCostBtn) {
-    addUpdateCostBtn.addEventListener("click", handleAddUpdateCost);
-}
-if (cancelEditBtn) {
-    cancelEditBtn.addEventListener("click", resetCostForm);
-}
-if (resetCostsBtn) {
-    resetCostsBtn.addEventListener("click", handleResetCosts);
 }
 
 // --- Inicialização Geral ---
@@ -194,6 +311,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const navCalculator = document.getElementById('nav-calculator');
     const navCosts = document.getElementById('nav-costs');
 
+    // Carrega os custos fixos iniciais (do localStorage ou padrão)
+    loadCosts(); 
+
+    // Adiciona listeners da calculadora
+    if (calculateBtn) {
+        calculateBtn.addEventListener("click", calculatePricing);
+    }
+    if(productCostInput) {
+        productCostInput.addEventListener("input", calculatePricing); // Usar 'input' para cálculo em tempo real
+    }
+    if(markupInput) {
+        markupInput.addEventListener("input", calculatePricing); // Usar 'input' para cálculo em tempo real
+    }
+
+    // Adiciona listeners da página de custos
+    if (addUpdateCostBtn) {
+        addUpdateCostBtn.addEventListener("click", handleAddUpdateCost);
+    }
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener("click", resetCostForm);
+    }
+    if (resetCostsBtn) {
+        resetCostsBtn.addEventListener("click", handleResetCosts);
+    }
+
     // Navegação entre páginas
     if (navCalculator && navCosts && calculatorPage && costsPage) {
         navCalculator.addEventListener('click', () => {
@@ -201,8 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
             costsPage.classList.add('hidden');
             navCalculator.classList.add('active');
             navCosts.classList.remove('active');
-            // Recalcula ao mudar para a página da calculadora se necessário
-            calculatePricing(); 
+            calculatePricing(); // Recalcula ao mostrar a página
         });
 
         navCosts.addEventListener('click', () => {
@@ -210,16 +351,16 @@ document.addEventListener('DOMContentLoaded', () => {
             costsPage.classList.remove('hidden');
             navCalculator.classList.remove('active');
             navCosts.classList.add('active');
-            // Renderiza a lista de custos ao mudar para a página de custos
-            renderFixedCostsList(); 
+            renderFixedCostsList(); // Renderiza a lista ao mostrar a página
         });
     }
 
-    // Carrega os custos fixos iniciais (do localStorage ou padrão)
-    loadCosts();
+    // Renderiza a lista de custos na inicialização (se a página de custos for a padrão, o que não é o caso)
+    // Mas é bom renderizar uma vez para que os listeners de editar/excluir sejam adicionados
+    renderFixedCostsList(); 
 
     // Chama o cálculo inicial na página da calculadora (se for a página ativa)
-    if (!calculatorPage.classList.contains('hidden')) {
+    if (calculatorPage && !calculatorPage.classList.contains('hidden')) {
        calculatePricing();
     }
 
@@ -235,5 +376,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     console.log('App inicializado e pronto.');
 });
-
-
