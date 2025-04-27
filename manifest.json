@@ -1,6 +1,6 @@
 {
-  "name": "Calculadora de Meta de Venda",
-  "short_name": "Meta de Venda",
+  "name": "Calculadora de Precificação",
+  "short_name": "Precificação",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
