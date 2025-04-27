@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Meta de Venda</title>
+  <title>Calculadora de Precificação</title>
   <link rel="manifest" href="manifest.json">
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
@@ -16,37 +16,54 @@
 </head>
 <body>
 
-<h1>Calculadora de Meta de Venda</h1>
+<h1>Calculadora de Precificação</h1>
 
 <label>Custo do Produto (R$):</label>
-<input type="number" id="custoProduto" placeholder="Ex: 12">
+<input type="number" id="custoProduto" placeholder="Ex: 12" step="0.01">
 
 <label>Preço de Venda (R$):</label>
-<input type="number" id="precoVenda" placeholder="Ex: 36">
+<input type="number" id="precoVenda" placeholder="Ex: 36" step="0.01">
 
 <label>Quantidade Comprada:</label>
 <input type="number" id="quantidadeComprada" placeholder="Ex: 10">
 
+<label>Margem de Lucro Desejada (%):</label>
+<input type="number" id="margemLucroDesejada" placeholder="Ex: 30" step="0.01">
+
 <button onclick="calcular()">Calcular</button>
+<button onclick="limparCampos()" style="background-color: #f44336; margin-top:5px;">Limpar</button>
 
 <div id="resultado" class="resultado" style="display:none;"></div>
 
 <script>
-  const custoFixoMensal = 6768; // Seu custo fixo atual
+  const custoFixoMensal = 6768; // Seu custo fixo fixo
 
   function calcular() {
     const custoProduto = parseFloat(document.getElementById('custoProduto').value) || 0;
     const precoVenda = parseFloat(document.getElementById('precoVenda').value) || 0;
     const quantidadeComprada = parseInt(document.getElementById('quantidadeComprada').value) || 1;
+    const margemLucroDesejada = parseFloat(document.getElementById('margemLucroDesejada').value) || 0;
+
+    if (custoProduto === 0 || precoVenda === 0) {
+      alert('Preencha o custo e o preço de venda.');
+      return;
+    }
 
     const investimentoTotal = custoProduto * quantidadeComprada;
     const receitaTotal = precoVenda * quantidadeComprada;
     const lucroBruto = receitaTotal - investimentoTotal;
     const lucroPorProduto = precoVenda - custoProduto;
-
+    const margemLucroReal = (lucroPorProduto / precoVenda) * 100;
     let produtosNecessarios = "—";
+
     if (lucroPorProduto > 0) {
       produtosNecessarios = Math.ceil(custoFixoMensal / lucroPorProduto);
+    }
+
+    let precoSugestao = "";
+    if (margemLucroDesejada > 0) {
+      const precoSugerido = custoProduto / (1 - (margemLucroDesejada / 100));
+      precoSugestao = `<br><strong>Preço sugerido para ${margemLucroDesejada}% de lucro:</strong> R$ ${precoSugerido.toFixed(2)}`;
     }
 
     document.getElementById('resultado').style.display = 'block';
@@ -54,8 +71,19 @@
       <strong>Investimento total:</strong> R$ ${investimentoTotal.toFixed(2)}<br>
       <strong>Receita total estimada:</strong> R$ ${receitaTotal.toFixed(2)}<br>
       <strong>Lucro bruto:</strong> R$ ${lucroBruto.toFixed(2)}<br>
-      <strong>Produtos que você precisa vender no mês para pagar o custo fixo:</strong> ${produtosNecessarios} unidades
+      <strong>Lucro por produto:</strong> R$ ${lucroPorProduto.toFixed(2)}<br>
+      <strong>Margem de lucro real:</strong> ${margemLucroReal.toFixed(2)}%<br>
+      <strong>Produtos que precisa vender para pagar o custo fixo:</strong> ${produtosNecessarios} unidades
+      ${precoSugestao}
     `;
+  }
+
+  function limparCampos() {
+    document.getElementById('custoProduto').value = "";
+    document.getElementById('precoVenda').value = "";
+    document.getElementById('quantidadeComprada').value = "";
+    document.getElementById('margemLucroDesejada').value = "";
+    document.getElementById('resultado').style.display = 'none';
   }
 
   if ('serviceWorker' in navigator) {
