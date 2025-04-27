@@ -1,1 +1,137 @@
-<html><body><h1>Arquivo index.html pronto</h1></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4CAF50">
+    <title>Precificação Inteligente</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <!-- Add to home screen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Precificação">
+    <!-- Link to icons (will add later) -->
+</head>
+<body>
+    <header>
+        <h1>Precificação Inteligente</h1>
+        <nav>
+            <button id="nav-calculator" class="active">Calculadora</button>
+            <button id="nav-costs">Custos Fixos</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="calculator-page">
+            <h2>Calculadora de Precificação</h2>
+            <!-- Conteúdo da página da calculadora -->
+            <!-- Página da Calculadora de Precificação -->
+<div class="calculator-container">
+    <div class="input-group">
+        <label for="product-cost">Custo do Produto (R$)</label>
+        <input type="number" id="product-cost" placeholder="0.00" min="0" step="0.01">
+        
+        <label for="markup">Markup (multiplicador)</label>
+        <input type="number" id="markup" placeholder="2.75" min="1" step="0.01" value="2.75">
+        
+        <button id="calculate-btn" class="primary">Calcular</button>
+    </div>
+    
+    <div class="results-container">
+        <h3>Resultados</h3>
+        <div class="result-item">
+            <span class="result-label">Preço Sugerido:</span>
+            <span id="suggested-price" class="result-value">R$ 0,00</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">Lucro por Produto:</span>
+            <span id="profit-per-product" class="result-value">R$ 0,00</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">Margem de Lucro Real:</span>
+            <span id="real-profit-margin" class="result-value">0%</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">Produtos para Cobrir Custo Fixo:</span>
+            <span id="products-to-cover-cost" class="result-value">0</span>
+        </div>
+    </div>
+    
+    <div class="tables-container">
+        <div class="table-wrapper">
+            <h3>Estimador de Lucro</h3>
+            <table id="profit-estimator">
+                <thead>
+                    <tr>
+                        <th>Markup</th>
+                        <th>Preço</th>
+                        <th>Lucro</th>
+                        <th>Margem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Será preenchido via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="table-wrapper">
+            <h3>Estimador de Vendas</h3>
+            <table id="sales-estimator">
+                <thead>
+                    <tr>
+                        <th>Vendas</th>
+                        <th>Lucro Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Será preenchido via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+        </section>
+
+        <section id="costs-page" class="hidden">
+            <h2>Gerenciar Custos Fixos</h2>
+            <!-- Conteúdo da página de custos fixos -->
+            <!-- Página de Gerenciar Custos Fixos -->
+<div class="costs-container">
+    <div class="fixed-costs-list">
+        <h3>Custos Fixos Cadastrados</h3>
+        <ul id="fixed-costs-ul">
+            <!-- Lista será preenchida via JavaScript -->
+        </ul>
+        <p class="storage-notice">Seus custos fixos são salvos localmente no seu dispositivo.</p>
+    </div>
+
+    <div class="add-cost-form">
+        <h3>Adicionar/Editar Custo Fixo</h3>
+        <input type="hidden" id="edit-cost-index" value="-1">
+        <label for="cost-name">Nome do Custo</label>
+        <input type="text" id="cost-name" placeholder="Ex: Embalagem">
+        
+        <label for="cost-percentage">Percentual (%)</label>
+        <input type="number" id="cost-percentage" placeholder="Ex: 5" min="0" step="0.01">
+        
+        <button id="add-update-cost-btn" class="primary">Adicionar Custo</button>
+        <button id="cancel-edit-btn" class="secondary hidden">Cancelar Edição</button>
+    </div>
+
+    <div class="costs-actions">
+        <h3>Ações</h3>
+        <button id="reset-costs-btn" class="secondary">Resetar Custos Padrão</button>
+    </div>
+</div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 Precificação Inteligente. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
